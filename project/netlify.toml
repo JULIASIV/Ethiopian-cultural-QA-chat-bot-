@@ -2,6 +2,11 @@
   publish = "dist"
   command = "npm run build"
 
+[dev]
+  framework = "#custom"
+  command = "vite"
+  targetPort = 5173
+
 [functions]
   directory = "netlify/functions"
 
