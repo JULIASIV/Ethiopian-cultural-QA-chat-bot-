@@ -2,6 +2,11 @@
   publish = "dist"
   command = "npm run build"
 
+[dev]
+  framework = "#custom"
+  command = "vite"
+  targetPort = 5173
+
 [functions]
   directory = "netlify/functions"
 
@@ -21,8 +26,19 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
 
 [[headers]]
   for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"

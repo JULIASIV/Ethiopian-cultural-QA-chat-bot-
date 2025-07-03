@@ -57,6 +57,16 @@ function getCulturalInfo(query) {
     return `Ethiopia is generally safe for tourists, especially in main tourist areas. Basic precautions include avoiding isolated areas at night, keeping valuables secure, and staying hydrated at high altitudes. Respect local customs - dress modestly when visiting religious sites. The Ethiopian calendar has 13 months, so dates may differ. Tipping is appreciated but not mandatory. Always carry cash as card acceptance is limited outside major cities.`;
   }
 
+  // Languages
+  if (lowerQuery.includes('language') || lowerQuery.includes('amharic') || lowerQuery.includes('speak')) {
+    return `Ethiopia has over 80 languages! Amharic is the federal working language, written in the unique Ge'ez script. English is widely spoken in tourist areas and by educated populations. Other major languages include Oromo, Tigrinya, and Somali. Learning basic Amharic phrases like "Selam" (hello), "Ameseginalehu" (thank you), and "Dehna neh?" (how are you?) will be greatly appreciated by locals!`;
+  }
+
+  // Currency & Money
+  if (lowerQuery.includes('money') || lowerQuery.includes('currency') || lowerQuery.includes('birr') || lowerQuery.includes('cost')) {
+    return `The Ethiopian Birr (ETB) is the official currency. US dollars and euros can be exchanged at banks and authorized dealers. Credit cards are accepted in major hotels and restaurants in Addis Ababa, but cash is king elsewhere. ATMs are available in cities but may not always work with foreign cards. Budget travelers can expect to spend $20-40/day, while mid-range travelers might spend $50-100/day including accommodation.`;
+  }
+
   return "No specific information found for that topic. The AI will answer based on its general knowledge.";
 }
 
@@ -73,6 +83,8 @@ Some popular topics I can help you with:
 • **Cultural Experiences**: Coffee ceremony, traditional festivals like Timket and Meskel
 • **Cuisine**: Injera, Doro Wat, and our unique spice blends
 • **Travel Tips**: Best times to visit, transportation, accommodation options
+• **Languages**: Amharic phrases and communication tips
+• **Currency**: Ethiopian Birr and money matters
 
 What specific aspect of Ethiopian culture or tourism would you like to explore?`;
   }
@@ -85,7 +97,8 @@ I hope this helps you discover the beauty of Ethiopia! Feel free to ask me about
 • Best time to visit: October to May (dry season)
 • Don't miss: Coffee ceremony experience
 • Must-see: Lalibela churches, especially during Timket festival
-• Try: Injera with Doro Wat and traditional honey wine (tej)`;
+• Try: Injera with Doro Wat and traditional honey wine (tej)
+• Learn: Basic Amharic greetings - locals love it!`;
 }
 
 export const handler = async (event, context) => {
@@ -121,6 +134,15 @@ export const handler = async (event, context) => {
         statusCode: 400,
         headers,
         body: JSON.stringify({ error: 'Valid message is required' }),
+      };
+    }
+
+    // Validate message length
+    if (message.length > 500) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Message too long. Please keep it under 500 characters.' }),
       };
     }
 

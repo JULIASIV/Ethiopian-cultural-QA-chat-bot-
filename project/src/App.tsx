@@ -14,6 +14,44 @@ interface QuickAction {
   query: string;
 }
 
+// Function to render text with markdown links
+const renderTextWithLinks = (text: string) => {
+  // Regular expression to match markdown links [text](url)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: (string | React.ReactElement)[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    
+    // Add the link
+    parts.push(
+      <a
+        key={match.index}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline transition-colors duration-200"
+      >
+        {match[1]}
+      </a>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text after the last link
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : text;
+};
+
 function App() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -107,13 +145,20 @@ function App() {
     sendMessage(query);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-red-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
               🇪🇹
             </div>
             <div>
@@ -135,7 +180,7 @@ function App() {
                 <button
                   key={index}
                   onClick={() => handleQuickAction(action.query)}
-                  className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200 text-left group"
+                  className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200 text-left group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
                   <div className="text-green-600 group-hover:text-green-700 transition-colors">
                     {action.icon}
@@ -151,33 +196,35 @@ function App() {
 
         {/* Chat Messages */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
+          <div className="h-96 overflow-y-auto p-6 space-y-4 scroll-smooth">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex gap-3 ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
                 {!message.isUser && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                 )}
                 
                 <div
-                  className={`max-w-xs sm:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl ${
+                  className={`max-w-xs sm:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl shadow-sm ${
                     message.isUser
                       ? 'bg-gradient-to-r from-green-600 to-green-700 text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.isUser ? message.text : renderTextWithLinks(message.text)}
+                  </div>
                   <p className={`text-xs mt-2 ${message.isUser ? 'text-green-100' : 'text-gray-500'}`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
 
                 {message.isUser && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                     <User className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -186,10 +233,10 @@ function App() {
             
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-yellow-600 rounded-full flex items-center justify-center shadow-sm">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-gray-100 px-4 py-3 rounded-2xl">
+                <div className="bg-gray-100 px-4 py-3 rounded-2xl shadow-sm">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -202,28 +249,33 @@ function App() {
           </div>
 
           {/* Input Form */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 p-4 bg-gray-50/50">
             <form onSubmit={handleSubmit} className="flex gap-3">
               <div className="flex-1 relative">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   placeholder="Ask me about Ethiopian culture, attractions, food, or travel tips..."
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
                   disabled={isLoading}
+                  maxLength={500}
                 />
                 <MessageCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
               <button
                 type="submit"
                 disabled={!inputText.trim() || isLoading}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 shadow-sm"
               >
                 <Send className="w-4 h-4" />
                 <span className="hidden sm:inline">Send</span>
               </button>
             </form>
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              Press Enter to send • {inputText.length}/500 characters
+            </div>
           </div>
         </div>
 
